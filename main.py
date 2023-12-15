@@ -129,7 +129,7 @@ def create_map(output_resource_dir, map_data):
     map_file_path = os.path.join(output_resource_dir, "zones" ,zonename, f"{zonename}.map")
 
     # Convert quaternion to Euler angles if needed
-    if 'rotW' in map_data:
+    if 'rotW' in map_data:                                                                                                                                                                                                                              
         rotX, rotY, rotZ = from_quaternion( float(map_data['rotX']), float(map_data['rotY']), float(map_data['rotZ']),float(map_data['rotW']))
     else:
         rotX, rotY, rotZ = map_data['rotX'], map_data['rotY'], map_data['rotZ']
@@ -139,7 +139,7 @@ def create_map(output_resource_dir, map_data):
 
     # Append each object to the map file
     with open(map_file_path, 'a', newline='\n') as map_file:
-        object_line = f'\t<object id="{map_data["model"]}" model="8585" posX="{map_data["posX"]}" posY="{map_data["posY"]}" posZ="{map_data["posZ"]}" rotX="{rotX}" rotY="{rotY}" rotZ="{rotZ}" interior="{map_data.get("interior", "0")}" dimension="{map_data.get("dimension", "-1")} doublesided="true"></object>\n'
+        object_line = f'\t<object id="{map_data["model"]}" model="8585" posX="{map_data["posX"]}" posY="{map_data["posY"]}" posZ="{map_data["posZ"]}" rotX="{rotX}" rotY="{rotY}" rotZ="{rotZ}" interior="{map_data.get("interior", "0")}" dimension="{map_data.get("dimension", "-1")}" doubleSided="1"></object>\n'
         map_file.write(object_line)
 
 
