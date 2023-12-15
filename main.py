@@ -130,7 +130,7 @@ def create_map(output_resource_dir, map_data):
 
     # Convert quaternion to Euler angles if needed
     if 'rotW' in map_data:
-        rotX, rotY, rotZ = quaternion_to_euler( float(map_data['rotX']), float(map_data['rotY']), float(map_data['rotZ']),float(map_data['rotW']))
+        rotX, rotY, rotZ = from_quaternion( float(map_data['rotX']), float(map_data['rotY']), float(map_data['rotZ']),float(map_data['rotW']))
     else:
         rotX, rotY, rotZ = map_data['rotX'], map_data['rotY'], map_data['rotZ']
 
@@ -139,7 +139,7 @@ def create_map(output_resource_dir, map_data):
 
     # Append each object to the map file
     with open(map_file_path, 'a', newline='\n') as map_file:
-        object_line = f'\t<object id="{map_data["model"]}" model="8585" posX="{map_data["posX"]}" posY="{map_data["posY"]}" posZ="{map_data["posZ"]}" rotX="{rotX}" rotY="{rotY}" rotZ="{rotZ}" interior="{map_data.get("interior", "0")}" dimension="{map_data.get("dimension", "-1")}"></object>\n'
+        object_line = f'\t<object id="{map_data["model"]}" model="8585" posX="{map_data["posX"]}" posY="{map_data["posY"]}" posZ="{map_data["posZ"]}" rotX="{rotX}" rotY="{rotY}" rotZ="{rotZ}" interior="{map_data.get("interior", "0")}" dimension="{map_data.get("dimension", "-1")} doublesided="true"></object>\n'
         map_file.write(object_line)
 
 
@@ -243,10 +243,10 @@ def read_ipl(file, game="VC"):
                         'posX': components[3].strip(),
                         'posY': components[4].strip(),
                         'posZ': components[5].strip(),
-                        'rotX': components[6].strip(),
-                        'rotY': components[7].strip(),
-                        'rotZ': components[8].strip(),
-                        'rotW': components[9].strip() if len(components) > 9 else '1',
+                        'rotX': components[9].strip(),
+                        'rotY': components[10].strip(),
+                        'rotZ': components[11].strip(),
+                        'rotW': components[12].strip() if len(components) > 9 else '1',
                         'dimension': '-1'
                     }
                 elif game == "SA":
