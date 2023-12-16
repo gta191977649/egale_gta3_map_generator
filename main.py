@@ -18,9 +18,9 @@ file_lists = {
 
 }
 
-def add_file_lists(type,file):
-    if file not in file_lists[type]:
-        file_lists[type].append(file)
+def add_file_lists(t,file):
+    if file not in file_lists[t]:
+        file_lists[t].append(file)
 def copy_model(zonename,modelName, txdName):
     #print(f"Processing Zone {zonename} ...")
 
@@ -33,13 +33,13 @@ def copy_model(zonename,modelName, txdName):
     col_exist = os.path.exists(path_col)
     if not dff_exist:
         print(f"DFF file for {modelName}.dff does not exist.")
-        return False
+
     if not txd_exist:
         print(f"TXD file for {txdName}.txd does not exist.")
-        return False
+
     if not col_exist:
         print(f"COL file for {modelName}.col does not exist.")
-        return False
+
 
     # copy the files to zone directory
     if dff_exist and txd_exist and col_exist:
@@ -60,10 +60,11 @@ def copy_model(zonename,modelName, txdName):
         print(f"Files copied for {modelName}.dff,{txdName}.txd, {modelName}.col, zone: {zonename}")
         # append to file list cache
         add_file_lists("imgs","zones/{}/dff/{}.dff".format(zonename,modelName))
-        add_file_lists("imgs","zones/{}/txd/{}.txd".format(zonename,modelName))
+        add_file_lists("imgs","zones/{}/txd/{}.txd".format(zonename,txdName))
         add_file_lists("imgs","zones/{}/col/{}.col".format(zonename,modelName))
+        return True
 
-    return True
+    return False
 def read_gta_dat(dat_file_path):
     ide_files = []
     ipl_files = []
