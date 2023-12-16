@@ -17,6 +17,10 @@ file_lists = {
     "files":[],
 
 }
+
+def add_file_lists(type,file):
+    if file not in file_lists[type]:
+        file_lists[type].append(file)
 def copy_model(zonename,modelName, txdName):
     #print(f"Processing Zone {zonename} ...")
 
@@ -29,10 +33,13 @@ def copy_model(zonename,modelName, txdName):
     col_exist = os.path.exists(path_col)
     if not dff_exist:
         print(f"DFF file for {modelName}.dff does not exist.")
+        return False
     if not txd_exist:
         print(f"TXD file for {txdName}.txd does not exist.")
+        return False
     if not col_exist:
         print(f"COL file for {modelName}.col does not exist.")
+        return False
 
     # copy the files to zone directory
     if dff_exist and txd_exist and col_exist:
@@ -52,9 +59,11 @@ def copy_model(zonename,modelName, txdName):
         shutil.copy2(path_col, col_dir)
         print(f"Files copied for {modelName}.dff,{txdName}.txd, {modelName}.col, zone: {zonename}")
         # append to file list cache
-        file_lists["imgs"].append("zones/{}/dff/{}.dff".format(zonename,modelName))
-        file_lists["imgs"].append("zones/{}/txd/{}.txd".format(zonename,txdName))
-        file_lists["imgs"].append("zones/{}/col/{}.col".format(zonename,modelName))
+        add_file_lists("imgs","zones/{}/dff/{}.dff".format(zonename,modelName))
+        add_file_lists("imgs","zones/{}/txd/{}.txd".format(zonename,modelName))
+        add_file_lists("imgs","zones/{}/col/{}.col".format(zonename,modelName))
+
+    return True
 def read_gta_dat(dat_file_path):
     ide_files = []
     ipl_files = []
@@ -121,7 +130,7 @@ def close_definition_file(output_resource_dir, zonename):
         with open(def_file_path, 'a', newline='\n') as def_file:
             def_file.write('</zoneDefinitions>\n')
 
-    file_lists["defs"].append("zones/{}/{}.definition".format(zonename,zonename))
+    add_file_lists("defs","zones/{}/{}.definition".format(zonename,zonename))
 def create_map(output_resource_dir, map_data):
     zonename = map_data['zonename']
 
@@ -193,8 +202,9 @@ def read_ide(file, game="VC"):
                             'flags': components[-1].strip(),
                             'lod': 'true' if components[1].strip().startswith("LOD") else 'nil',
                         }
-                        copy_model(zonename, model_data['modelName'], model_data['txdName'])
-                        create_def(output_resource_dir, model_data)
+                        # only create the defs that contains exist model file
+                        if copy_model(zonename, model_data['modelName'], model_data['txdName']):
+                            create_def(output_resource_dir, model_data)
 
 
 
