@@ -15,9 +15,14 @@ file_lists = {
     "maps":[],
     "imgs":[],
     "files":[],
-
 }
 
+exits_img = {
+    "dffs":[]
+}
+def add_exsit_img(t,file):
+    if file not in exits_img[t]:
+        exits_img[t].append(file)
 def add_file_lists(t,file):
     if file not in file_lists[t]:
         file_lists[t].append(file)
@@ -62,6 +67,8 @@ def copy_model(zonename,modelName, txdName):
         add_file_lists("imgs","zones/{}/dff/{}.dff".format(zonename,modelName))
         add_file_lists("imgs","zones/{}/txd/{}.txd".format(zonename,txdName))
         add_file_lists("imgs","zones/{}/col/{}.col".format(zonename,modelName))
+
+        add_exsit_img("dffs", modelName.lower())
         return True
 
     return False
@@ -277,7 +284,9 @@ def read_ipl(file, game="VC"):
                         'lod': components[10].strip() if len(components) > 10 else 'nil',
                         'dimension': '-1'
                     }
-                create_map(output_resource_dir, map_data)
+
+                if map_data["model"].lower() in exits_img["dffs"]:
+                    create_map(output_resource_dir, map_data)
         close_map_file(output_resource_dir, zonename)
 
 def read_ide_ipl_files(files, directory):
