@@ -110,7 +110,7 @@ def create_def(output_resource_dir, model_data):
             def_line += f' timeIn="{timeIn}"'
         if timeOut:
             def_line += f' timeOut="{timeOut}"'
-        def_line += f' lod="{model_data["lod"]}" lodDistance="{model_data["drawDistance"]}"></definition>\n'
+        def_line += f' lod="{model_data["lod"]}" lodDistance="{model_data["drawDistance"]}" flags="{model_data["flags"]}" doubleSided="true"></definition>\n'
 
         # Check if the file is newly created or not, to add <zoneDefinitions> tag
         if os.path.getsize(def_file_path) == len(def_line):
@@ -156,7 +156,7 @@ def create_map(output_resource_dir, map_data):
 
     # Append each object to the map file
     with open(map_file_path, 'a', newline='\n') as map_file:
-        object_line = f'\t<object id="{map_data["model"]}" model="8585" posX="{map_data["posX"]}" posY="{map_data["posY"]}" posZ="{map_data["posZ"]}" rotX="{rotX}" rotY="{rotY}" rotZ="{rotZ}" interior="{map_data.get("interior", "0")}" dimension="{map_data.get("dimension", "-1")}" doubleSided="1"></object>\n'
+        object_line = f'\t<object id="{map_data["model"]}" model="8585" posX="{map_data["posX"]}" posY="{map_data["posY"]}" posZ="{map_data["posZ"]}" rotX="{rotX}" rotY="{rotY}" rotZ="{rotZ}" interior="{map_data.get("interior", "0")}" dimension="{map_data.get("dimension", "-1")}"></object>\n'
         map_file.write(object_line)
 
 
