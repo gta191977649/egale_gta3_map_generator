@@ -1,5 +1,7 @@
 import os
 import shutil
+
+from dymatic_object import getObjectDat
 from quaternion import *
 GAME = "VC"
 MAP_NAME = "LCS"
@@ -20,6 +22,8 @@ file_lists = {
 exits_img = {
     "dffs":[]
 }
+
+objects_dat = []
 def add_exsit_img(t,file):
     if file not in exits_img[t]:
         exits_img[t].append(file)
@@ -91,6 +95,11 @@ def create_def(output_resource_dir, model_data):
     # Check if 'timeIn' and 'timeOut' flags are present in the flags
     timeIn = None
     timeOut = None
+
+    # Check if breakable
+    breakable = "false"
+    if model_data["modelName"].lower() in objects_dat: breakable = "true"
+
     if "timeOn" in model_data['flags'] or "timeOff" in model_data['flags']:
         time_flags = model_data['flags'].split()  # Assuming flags are space-separated
         for flag in time_flags:
@@ -110,7 +119,7 @@ def create_def(output_resource_dir, model_data):
             def_line += f' timeIn="{timeIn}"'
         if timeOut:
             def_line += f' timeOut="{timeOut}"'
-        def_line += f' lod="{model_data["lod"]}" lodDistance="{model_data["drawDistance"]}" flags="{model_data["flags"]}" doubleSided="true"></definition>\n'
+        def_line += f' lod="{model_data["lod"]}" lodDistance="{model_data["drawDistance"]}" flags="{model_data["flags"]}" doubleSided="true" breakable="{breakable}"></definition>\n'
 
         # Check if the file is newly created or not, to add <zoneDefinitions> tag
         if os.path.getsize(def_file_path) == len(def_line):
@@ -354,6 +363,10 @@ def generate_meta_xml():
          file.write(output)
 
 if __name__ == '__main__':
+    # handle with object.dat for dynamic objects
+    obj_dat = getObjectDat("D:\\game\\GTA Re.LCS (Beta 6.0 Build 15) - PC\\GTA Liberty City Stories\\data\\object.dat")
+    for obj in obj_dat:
+        objects_dat.append(obj["modelName"].lower())
+
     generate_map()
     generate_meta_xml()
-
