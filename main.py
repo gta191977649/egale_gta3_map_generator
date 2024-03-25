@@ -8,8 +8,8 @@ MAP_NAME = "LCS"
 AUTHOR = "NURUPO"
 DESCRIPTION = "LCS CONVERTED BY NURUPO"
 # Path to your gta.dat file
-dat_file_path = 'E:\\dev\\mta_maps\\lcs'
-output_resource_dir = 'E:\\dev\\mta_maps\\lcs\\output'
+dat_file_path = '/Users/nurupo/Desktop/dev/vcs_map/'
+output_resource_dir = '/Users/nurupo/Desktop/dev/vcs_map/output'
 
 zones = []
 file_lists = {
@@ -31,7 +31,7 @@ def add_file_lists(t,file):
     if file not in file_lists[t]:
         file_lists[t].append(file)
 def copy_model(zonename,modelName, txdName):
-    #print(f"Processing Zone {zonename} ...")
+    #print(f"Processing Copy Model Zone: {zonename} ...")
 
     path_dff = os.path.join(dat_file_path, "img", f"{modelName}.dff")
     path_txd = os.path.join(dat_file_path, "img", f"{txdName}.txd")
@@ -222,6 +222,21 @@ def read_ide(file, game="VC"):
                         # only create the defs that contains exist model file
                         if copy_model(zonename, model_data['modelName'], model_data['txdName']):
                             create_def(output_resource_dir, model_data)
+                if game in ["SA"]:
+                    if len(components) == 5:  # Types 1, 2, 3
+                        model_data = {
+                            'zonename': zonename,
+                            'id': components[0].strip(),
+                            'modelName': components[1].strip(),
+                            'txdName': components[2].strip(),
+                            'meshCount': 'nil',
+                            'drawDistance': components[-2].strip(),
+                            'flags': components[-1].strip(),
+                            'lod': 'nil', # need to implmenting sa LOD finding mechisim
+                        }
+                        # only create the defs that contains exist model file
+                        if copy_model(zonename, model_data['modelName'], model_data['txdName']):
+                            create_def(output_resource_dir, model_data)
 
 
 
@@ -304,15 +319,16 @@ def read_ide_ipl_files(files, directory):
         file_name, file_extension = os.path.splitext(file)
         file_extension = file_extension.lower()
 
+        file = file.replace('\\', '/')
         path = os.path.join(directory, file)
 
         # Check if the file is an IDE or IPL file
         if file_extension == '.ide':
             file_type = "IDE"
-            read_ide(path, "VC")
+            read_ide(path, "SA")
         elif file_extension == '.ipl':
             file_type = "IPL"
-            read_ipl(path, "VC")
+            read_ipl(path, "SA")
         else:
             print(f"Unknown file type for {file}")
             continue
@@ -364,9 +380,9 @@ def generate_meta_xml():
 
 if __name__ == '__main__':
     # handle with object.dat for dynamic objects
-    obj_dat = getObjectDat("D:\\game\\GTA Re.LCS (Beta 6.0 Build 15) - PC\\GTA Liberty City Stories\\data\\object.dat")
-    for obj in obj_dat:
-        objects_dat.append(obj["modelName"].lower())
+    # obj_dat = getObjectDat("/Users/nurupo/Desktop/dev/vcs_map/object.dat")
+    # for obj in obj_dat:
+    #     objects_dat.append(obj["modelName"].lower())
 
     generate_map()
     generate_meta_xml()
