@@ -155,9 +155,9 @@ def close_definition_file(output_resource_dir, zonename):
     add_file_lists("defs","zones/{}/{}.definition".format(zonename,zonename))
 def create_map(output_resource_dir, map_data):
     zonename = map_data['zonename']
-    if map_data['model'].strip().startswith("LOD"):
-        print(f"{map_data['model'].strip()} is skipped due to its LOD!")
-        return
+    # if map_data['model'].strip().startswith("LOD"):
+    #     print(f"{map_data['model'].strip()} is skipped due to its LOD!")
+    #     return
 
     map_file_path = os.path.join(output_resource_dir, "zones" ,zonename, f"{zonename}.map")
 
