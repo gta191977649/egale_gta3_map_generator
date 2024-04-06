@@ -10,8 +10,8 @@ MAP_NAME = "LCS"
 AUTHOR = "NURUPO"
 DESCRIPTION = "LCS CONVERTED BY NURUPO"
 # Path to your gta.dat file
-dat_file_path = 'E:\\dev\\vcs_map'
-output_resource_dir = 'E:\\dev\\vcs_map\\vcs'
+dat_file_path = '/Users/nurupo/Desktop/dev/vcs_map/'
+output_resource_dir = '/Users/nurupo/Desktop/dev/vcs_map/vcs'
 
 zones = []
 file_lists = {
@@ -92,7 +92,7 @@ def read_gta_dat(dat_file_path):
 def create_def(output_resource_dir, model_data):
     zonename = model_data['zonename']
     # Define the path for the definition file
-    def_file_path = os.path.join(output_resource_dir,"zones" ,zonename, f"{zonename}.definition")
+    def_file_path = os.path.join(output_resource_dir,"zones" ,zonename, f"{zonename}.def")
 
     # Check if 'timeIn' and 'timeOut' flags are present in the flags
     timeIn = None
@@ -136,7 +136,7 @@ def create_def(output_resource_dir, model_data):
 
 
 def initialize_definition_file(output_resource_dir, zonename):
-    def_file_path = os.path.join(output_resource_dir,"zones" , zonename, f"{zonename}.definition")
+    def_file_path = os.path.join(output_resource_dir,"zones" , zonename, f"{zonename}.def")
     # Create the directory for the definition file if it doesn't exist
     os.makedirs(os.path.dirname(def_file_path), exist_ok=True)
 
@@ -145,14 +145,14 @@ def initialize_definition_file(output_resource_dir, zonename):
         with open(def_file_path, 'w', newline='\n') as def_file:
             def_file.write('<zoneDefinitions>\n')
 def close_definition_file(output_resource_dir, zonename):
-    def_file_path = os.path.join(output_resource_dir,"zones" , zonename, f"{zonename}.definition")
+    def_file_path = os.path.join(output_resource_dir,"zones" , zonename, f"{zonename}.def")
 
     # Append the closing tag only if the file exists
     if os.path.exists(def_file_path):
         with open(def_file_path, 'a', newline='\n') as def_file:
             def_file.write('</zoneDefinitions>\n')
 
-    add_file_lists("defs","zones/{}/{}.definition".format(zonename,zonename))
+    add_file_lists("defs","zones/{}/{}.def".format(zonename,zonename))
 def create_map(output_resource_dir, map_data):
     zonename = map_data['zonename']
     # if map_data['model'].strip().startswith("LOD"):
@@ -357,7 +357,7 @@ def read_ipl(file, game="VC"):
                         'rotY': components[7].strip(),
                         'rotZ': components[8].strip(),
                         'rotW': components[9].strip(),
-                        'lod': components[10].strip() if len(components) > 9 else 'nil',
+                        #'lod': components[10].strip() if len(components) > 9 else 'nil',
                         'dimension': '-1'
                     }
 
@@ -414,7 +414,7 @@ def generate_meta_xml():
     output += f"\t<info type=\"scrip\" name=\"{MAP_NAME}\" author=\"{AUTHOR}\" description=\"{DESCRIPTION}\" version=\"1\" eagleLoad=\"1\" />\n"
     # load maps
     for map in file_lists["maps"]:
-        output += f"\t<map src=\"{map}\" type=\"server\" />\n"
+        output += f"\t<file src=\"{map}\" type=\"client\" />\n"
     # load defs
     for df in file_lists["defs"]:
         output += f"\t<file src=\"{df}\" type=\"client\" />\n"
