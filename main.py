@@ -10,8 +10,8 @@ MAP_NAME = "LCS"
 AUTHOR = "NURUPO"
 DESCRIPTION = "LCS CONVERTED BY NURUPO"
 # Path to your gta.dat file
-dat_file_path = '/Users/nurupo/Desktop/dev/vcs_map/'
-output_resource_dir = '/Users/nurupo/Desktop/dev/vcs_map/vcs'
+dat_file_path = 'E:\\dev\\vcs_map'
+output_resource_dir = 'E:\\dev\\vcs_map\\vcs'
 
 zones = []
 file_lists = {
@@ -124,7 +124,7 @@ def create_def(output_resource_dir, model_data):
             def_line += f' timeIn="{timeIn}"'
         if timeOut:
             def_line += f' timeOut="{timeOut}"'
-        def_line += f' lod="{model_data["lod"]}" lodDistance="{model_data["drawDistance"]}" flags="{model_data["flags"]}" doubleSided="true" breakable="{breakable}"></definition>\n'
+        def_line += f' lod="{model_data["lod"]}" lodID= "{model_data["lodID"]}" lodDistance="{model_data["drawDistance"]}" flags="{model_data["flags"]}" doubleSided="true" breakable="{breakable}"></definition>\n'
 
         # Check if the file is newly created or not, to add <zoneDefinitions> tag
         if os.path.getsize(def_file_path) == len(def_line):
@@ -155,7 +155,9 @@ def close_definition_file(output_resource_dir, zonename):
     add_file_lists("defs","zones/{}/{}.definition".format(zonename,zonename))
 def create_map(output_resource_dir, map_data):
     zonename = map_data['zonename']
-
+    if map_data['model'].strip().startswith("LOD"):
+        print(f"{map_data['model'].strip()} is skipped due to its LOD!")
+        return
 
     map_file_path = os.path.join(output_resource_dir, "zones" ,zonename, f"{zonename}.map")
 
@@ -192,11 +194,49 @@ def close_map_file(output_resource_dir, zonename):
         with open(map_file_path, 'a', newline='\n') as map_file:
             map_file.write('</map>\n')
     file_lists["maps"].append(f"zones/{zonename}/{zonename}.map")
+
+def read_ide_objects(file):
+    OBJS = []
+    with open(file, 'r', newline='\n') as f:
+        process_lines = False
+        for line in f:
+            line = line.strip()
+            if line == 'objs':
+                process_lines = True
+                continue
+            elif line == 'end':
+                process_lines = False
+                break
+            if process_lines and line and not line.startswith('#'):
+                components = line.split(',')
+                model_data = {
+                    'id': components[0].strip(),
+                    'modelName': components[1].strip(),
+                    'txdName': components[2].strip(),
+                    'meshCount': components[3].strip(),
+                    'drawDistance': components[-2].strip(),
+                    'flags': components[-1].strip(),
+                }
+                OBJS.append(model_data)
+    return OBJS
+def findLODInIDE(modelName,ide_data):
+    if modelName.startswith("LOD"): return False # skip self
+    if len(modelName) < 3: return False
+    modelName = "LOD" + modelName[3:]
+
+    for model in ide_data:
+        if modelName.lower() in model['modelName'].lower():
+            return modelName
+    return False
+
 def read_ide(file, game="VC"):
     with open(file, 'r', newline='\n') as f:
         zonename, _ = os.path.splitext(os.path.basename(f.name))
         initialize_definition_file(output_resource_dir, zonename)
         process_lines = False
+
+        objs = read_ide_objects(file)
+
 
         if zonename not in zones:
             zones.append(zonename)
@@ -226,12 +266,14 @@ def read_ide(file, game="VC"):
                             'drawDistance': components[-2].strip(),
                             'flags': components[-1].strip(),
                             'lod': 'true' if components[1].strip().startswith("LOD") else 'nil',
+                            'lodID': components[1].strip(),
                         }
                         # only create the defs that contains exist model file
                         if copy_model(zonename, model_data['modelName'], model_data['txdName']):
                             create_def(output_resource_dir, model_data)
                 if game in ["SA"]:
                     if len(components) == 5:  # Types 1, 2, 3
+                        has_lod = findLODInIDE(components[1].strip(),objs)
                         model_data = {
                             'zonename': zonename,
                             'id': components[0].strip(),
@@ -240,8 +282,10 @@ def read_ide(file, game="VC"):
                             'meshCount': 'nil',
                             'drawDistance': components[-2].strip(),
                             'flags': components[-1].strip(),
-                            'lod': 'true' if components[1].strip().startswith("LOD") else 'nil',
+                            'lod': 'true' if has_lod else 'false',
+                            'lodID': has_lod if has_lod else 'false',
                         }
+
                         # only create the defs that contains exist model file
                         if copy_model(zonename, model_data['modelName'], model_data['txdName']):
                             create_def(output_resource_dir, model_data)
