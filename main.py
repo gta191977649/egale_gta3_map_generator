@@ -3,13 +3,15 @@ import shutil
 
 from dymatic_object import getObjectDat
 from quaternion import *
+from model.sa_model import *
+USE_SA_PROP = True
 GAME = "VC"
 MAP_NAME = "LCS"
 AUTHOR = "NURUPO"
 DESCRIPTION = "LCS CONVERTED BY NURUPO"
 # Path to your gta.dat file
 dat_file_path = '/Users/nurupo/Desktop/dev/vcs_map/'
-output_resource_dir = '/Users/nurupo/Desktop/dev/vcs_map/output'
+output_resource_dir = '/Users/nurupo/Desktop/dev/vcs_map/vcs'
 
 zones = []
 file_lists = {
@@ -113,7 +115,10 @@ def create_def(output_resource_dir, model_data):
 
     # Write to the definition file
     with open(def_file_path, 'a', newline='\n') as def_file:
-        def_line = f'\t<definition id="{model_data["modelName"]}" zone="{zonename}" dff="{model_data["modelName"]}" col="{model_data["modelName"]}" txd="{model_data["txdName"]}"'
+        if USE_SA_PROP and getSAModelID(model_data["modelName"]):
+            def_line = f'\t<definition id="{model_data["modelName"]}" zone="{zonename}" default=\"true\"'
+        else:
+            def_line = f'\t<definition id="{model_data["modelName"]}" zone="{zonename}" dff="{model_data["modelName"]}" col="{model_data["modelName"]}" txd="{model_data["txdName"]}"'
 
         if timeIn:
             def_line += f' timeIn="{timeIn}"'
@@ -165,7 +170,10 @@ def create_map(output_resource_dir, map_data):
 
     # Append each object to the map file
     with open(map_file_path, 'a', newline='\n') as map_file:
-        object_line = f'\t<object id="{map_data["model"]}" model="8585" posX="{map_data["posX"]}" posY="{map_data["posY"]}" posZ="{map_data["posZ"]}" rotX="{rotX}" rotY="{rotY}" rotZ="{rotZ}" interior="{map_data.get("interior", "0")}" dimension="{map_data.get("dimension", "-1")}"></object>\n'
+        if USE_SA_PROP and getSAModelID(map_data["model"]):
+            object_line = f'\t<object id="{map_data["model"]}" model="{getSAModelID(map_data["model"])}" posX="{map_data["posX"]}" posY="{map_data["posY"]}" posZ="{map_data["posZ"]}" rotX="{rotX}" rotY="{rotY}" rotZ="{rotZ}" interior="{map_data.get("interior", "0")}" dimension="{map_data.get("dimension", "-1")}"></object>\n'
+        else:
+            object_line = f'\t<object id="{map_data["model"]}" model="8585" posX="{map_data["posX"]}" posY="{map_data["posY"]}" posZ="{map_data["posZ"]}" rotX="{rotX}" rotY="{rotY}" rotZ="{rotZ}" interior="{map_data.get("interior", "0")}" dimension="{map_data.get("dimension", "-1")}"></object>\n'
         map_file.write(object_line)
 
 
@@ -232,7 +240,7 @@ def read_ide(file, game="VC"):
                             'meshCount': 'nil',
                             'drawDistance': components[-2].strip(),
                             'flags': components[-1].strip(),
-                            'lod': 'nil', # need to implmenting sa LOD finding mechisim
+                            'lod': 'true' if components[1].strip().startswith("LOD") else 'nil',
                         }
                         # only create the defs that contains exist model file
                         if copy_model(zonename, model_data['modelName'], model_data['txdName']):
@@ -304,11 +312,14 @@ def read_ipl(file, game="VC"):
                         'rotX': components[6].strip(),
                         'rotY': components[7].strip(),
                         'rotZ': components[8].strip(),
-                        'rotW': components[9].strip() if len(components) > 9 else '1',
-                        'lod': components[10].strip() if len(components) > 10 else 'nil',
+                        'rotW': components[9].strip(),
+                        'lod': components[10].strip() if len(components) > 9 else 'nil',
                         'dimension': '-1'
                     }
 
+                if USE_SA_PROP and getSAModelID(map_data["model"].lower()):
+                    print(f"{map_data["model"]} is skipped because it is a sa dynamic prop")
+                    create_map(output_resource_dir, map_data)
                 if map_data["model"].lower() in exits_img["dffs"]:
                     create_map(output_resource_dir, map_data)
         close_map_file(output_resource_dir, zonename)
