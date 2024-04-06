@@ -318,7 +318,7 @@ def read_ipl(file, game="VC"):
                     }
 
                 if USE_SA_PROP and getSAModelID(map_data["model"].lower()):
-                    print(f"{map_data["model"]} is skipped because it is a sa dynamic prop")
+                    print(f"{map_data['model']} is skipped because it is a sa dynamic prop")
                     create_map(output_resource_dir, map_data)
                 if map_data["model"].lower() in exits_img["dffs"]:
                     create_map(output_resource_dir, map_data)
