@@ -6097,17 +6097,6 @@
 616,veg_treea1
 617,veg_treeb1
 618,veg_treea3
-619,veg_palwee03
-620,veg_palm04
-621,veg_palm02
-622,veg_palm03
-623,veg_palwee01
-624,veg_palwee02
-629,veg_palmkb5
-634,veg_palmkbb11
-641,veg_palmkb13
-645,veg_palmbig14
-648,veg_palm01
 649,sjmpalm
 652,sjmpalmbig
 654,pinetree08

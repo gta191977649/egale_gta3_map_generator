@@ -10,8 +10,8 @@ MAP_NAME = "LCS"
 AUTHOR = "NURUPO"
 DESCRIPTION = "LCS CONVERTED BY NURUPO"
 # Path to your gta.dat file
-dat_file_path = '/Users/nurupo/Desktop/dev/vcs_map/'
-output_resource_dir = '/Users/nurupo/Desktop/dev/vcs_map/vcs'
+dat_file_path = 'E:\\dev\\vcs_map'
+output_resource_dir = 'E:\\dev\\vcs_map\\vcs'
 
 zones = []
 file_lists = {
