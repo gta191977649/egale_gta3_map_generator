@@ -103,13 +103,15 @@ def create_def(output_resource_dir, model_data):
     breakable = "false"
     if model_data["modelName"].lower() in objects_dat: breakable = "true"
 
-    if "timeOn" in model_data['flags'] or "timeOff" in model_data['flags']:
-        time_flags = model_data['flags'].split()  # Assuming flags are space-separated
-        for flag in time_flags:
-            if flag.startswith("timeOn"):
-                timeIn = flag.split('=')[1]
-            elif flag.startswith("timeOff"):
-                timeOut = flag.split('=')[1]
+    if "timeIn" in model_data or "timeOut" in model_data:
+        timeIn = model_data['timeIn']
+        timeOut = model_data['timeOut']
+        # time_flags = model_data['flags'].split()  # Assuming flags are space-separated
+        # for flag in time_flags:
+        #     if flag.startswith("timeOn"):
+        #         timeIn = flag.split('=')[1]
+        #     elif flag.startswith("timeOff"):
+        #         timeOut = flag.split('=')[1]
 
     # Create the zonename directory if it doesn't exist
     os.makedirs(os.path.dirname(def_file_path), exist_ok=True)
@@ -300,7 +302,26 @@ def read_ide(file, game="VC"):
                                 if copy_model(zonename, model_data['modelName'], model_data['txdName']):
                                     create_def(output_resource_dir, model_data)
                     if mode == "tobj":
-                        print("Timed object, not implemented...")
+                        if game in ["SA"]:
+                            if len(components) == 7:  # Types 1, 2, 3
+                                has_lod = findLODInIDE(components[1].strip(), objs)
+                                model_data = {
+                                    'zonename': zonename,
+                                    'id': components[0].strip(),
+                                    'modelName': components[1].strip(),
+                                    'txdName': components[2].strip(),
+                                    'meshCount': 'nil',
+                                    'timeIn': components[5].strip(),
+                                    'timeOut': components[6].strip(),
+                                    'drawDistance': components[3].strip(),
+                                    'flags': components[4].strip(),
+                                    'lod': 'true',
+                                    'lodID': components[1].strip(),
+                                }
+
+                                # only create the defs that contains exist model file
+                                if copy_model(zonename, model_data['modelName'], model_data['txdName']):
+                                    create_def(output_resource_dir, model_data)
         finally:
             close_definition_file(output_resource_dir, zonename)
 
