@@ -4,14 +4,15 @@ import shutil
 from dymatic_object import getObjectDat
 from quaternion import *
 from model.sa_model import *
+from ide_flags import *
 USE_SA_PROP = True
-GAME = "VC"
-MAP_NAME = "LCS"
+GAME = "SA"
+MAP_NAME = "Bayview"
 AUTHOR = "NURUPO"
-DESCRIPTION = "LCS CONVERTED BY NURUPO"
+DESCRIPTION = "Bayview CONVERTED BY NURUPO"
 # Path to your gta.dat file
-dat_file_path = 'E:\\dev\\vcs_map'
-output_resource_dir = 'E:\\dev\\vcs_map\\vcs'
+dat_file_path = 'F:\\lotrs'
+output_resource_dir = 'F:\\lotrs\\mta'
 
 zones = []
 file_lists = {
@@ -124,7 +125,14 @@ def create_def(output_resource_dir, model_data):
             def_line += f' timeIn="{timeIn}"'
         if timeOut:
             def_line += f' timeOut="{timeOut}"'
-        def_line += f' lod="{model_data["lod"]}" lodID= "{model_data["lodID"]}" lodDistance="{model_data["drawDistance"]}" flags="{model_data["flags"]}" doubleSided="true" breakable="{breakable}"></definition>\n'
+
+        # Check if transperent
+        if isTransperentFlag(int(model_data["flags"])):
+            def_line += f' alphaTransparency="true"'
+        else:
+            def_line += f' alphaTransparency="false"'
+
+        def_line += f' lod="{model_data["lod"]}" lodID="{model_data["lodID"]}" lodDistance="{model_data["drawDistance"]}" flags="{model_data["flags"]}" doubleSided="true" breakable="{breakable}"></definition>\n'
 
         # Check if the file is newly created or not, to add <zoneDefinitions> tag
         if os.path.getsize(def_file_path) == len(def_line):
@@ -162,7 +170,7 @@ def create_map(output_resource_dir, map_data):
     map_file_path = os.path.join(output_resource_dir, "zones" ,zonename, f"{zonename}.map")
 
     # Convert quaternion to Euler angles if needed
-    if 'rotW' in map_data:                                                                                                                                                                                                                              
+    if 'rotW' in map_data:
         rotX, rotY, rotZ = from_quaternion( float(map_data['rotX']), float(map_data['rotY']), float(map_data['rotZ']),float(map_data['rotW']))
     else:
         rotX, rotY, rotZ = map_data['rotX'], map_data['rotY'], map_data['rotZ']
@@ -177,7 +185,6 @@ def create_map(output_resource_dir, map_data):
         else:
             object_line = f'\t<object id="{map_data["model"]}" model="8585" posX="{map_data["posX"]}" posY="{map_data["posY"]}" posZ="{map_data["posZ"]}" rotX="{rotX}" rotY="{rotY}" rotZ="{rotZ}" interior="{map_data.get("interior", "0")}" dimension="{map_data.get("dimension", "-1")}"></object>\n'
         map_file.write(object_line)
-
 
 def initialize_map_file(output_resource_dir, zonename):
     map_file_path = os.path.join(output_resource_dir,"zones" , zonename, f"{zonename}.map")
@@ -197,6 +204,7 @@ def close_map_file(output_resource_dir, zonename):
 
 def read_ide_objects(file):
     OBJS = []
+
     with open(file, 'r', newline='\n') as f:
         process_lines = False
         for line in f:
@@ -234,62 +242,67 @@ def read_ide(file, game="VC"):
         zonename, _ = os.path.splitext(os.path.basename(f.name))
         initialize_definition_file(output_resource_dir, zonename)
         process_lines = False
-
+        mode = False
         objs = read_ide_objects(file)
 
-
+        print(file)
         if zonename not in zones:
             zones.append(zonename)
 
-        for line in f:
-            line = line.strip()
-            if line == 'objs':
-                process_lines = True
-                continue
-            elif line == 'end':
-                process_lines = False
-                close_definition_file(output_resource_dir, zonename)
-                break
+        try:
+            for line in f:
+                line = line.strip()
+                if line == 'objs' or line == 'tobj':
+                    process_lines = True
+                    mode = line
+                    continue
+                elif line == 'end':
+                    process_lines = False
+                    mode = False
+                    continue
 
-            if process_lines and line and not line.startswith('#'):
-                components = line.split(',')
+                if process_lines and line and not line.startswith('#'):
+                    components = line.split(',')
+                    if mode == "objs":
+                        # Game version-specific parsing
+                        if game in ["III", "VC", "LCS"]:
+                            if len(components) in [6, 7, 8]:  # Types 1, 2, 3
+                                model_data = {
+                                    'zonename': zonename,
+                                    'id': components[0].strip(),
+                                    'modelName': components[1].strip(),
+                                    'txdName': components[2].strip(),
+                                    'meshCount': components[3].strip(),
+                                    'drawDistance': components[-2].strip(),
+                                    'flags': components[-1].strip(),
+                                    'lod': 'true' if components[1].strip().startswith("LOD") else 'nil',
+                                    'lodID': components[1].strip(),
+                                }
+                                # only create the defs that contains exist model file
+                                if copy_model(zonename, model_data['modelName'], model_data['txdName']):
+                                    create_def(output_resource_dir, model_data)
+                        if game in ["SA"]:
+                            if len(components) == 5:  # Types 1, 2, 3
+                                has_lod = findLODInIDE(components[1].strip(), objs)
+                                model_data = {
+                                    'zonename': zonename,
+                                    'id': components[0].strip(),
+                                    'modelName': components[1].strip(),
+                                    'txdName': components[2].strip(),
+                                    'meshCount': 'nil',
+                                    'drawDistance': components[-2].strip(),
+                                    'flags': components[-1].strip(),
+                                    'lod': 'true' if has_lod else 'false',
+                                    'lodID': has_lod if has_lod else 'false',
+                                }
 
-                # Game version-specific parsing
-                if game in ["III", "VC", "LCS"]:
-                    if len(components) in [6, 7, 8]:  # Types 1, 2, 3
-                        model_data = {
-                            'zonename': zonename,
-                            'id': components[0].strip(),
-                            'modelName': components[1].strip(),
-                            'txdName': components[2].strip(),
-                            'meshCount': components[3].strip(),
-                            'drawDistance': components[-2].strip(),
-                            'flags': components[-1].strip(),
-                            'lod': 'true' if components[1].strip().startswith("LOD") else 'nil',
-                            'lodID': components[1].strip(),
-                        }
-                        # only create the defs that contains exist model file
-                        if copy_model(zonename, model_data['modelName'], model_data['txdName']):
-                            create_def(output_resource_dir, model_data)
-                if game in ["SA"]:
-                    if len(components) == 5:  # Types 1, 2, 3
-                        has_lod = findLODInIDE(components[1].strip(),objs)
-                        model_data = {
-                            'zonename': zonename,
-                            'id': components[0].strip(),
-                            'modelName': components[1].strip(),
-                            'txdName': components[2].strip(),
-                            'meshCount': 'nil',
-                            'drawDistance': components[-2].strip(),
-                            'flags': components[-1].strip(),
-                            'lod': 'true' if has_lod else 'false',
-                            'lodID': has_lod if has_lod else 'false',
-                        }
-
-                        # only create the defs that contains exist model file
-                        if copy_model(zonename, model_data['modelName'], model_data['txdName']):
-                            create_def(output_resource_dir, model_data)
-
+                                # only create the defs that contains exist model file
+                                if copy_model(zonename, model_data['modelName'], model_data['txdName']):
+                                    create_def(output_resource_dir, model_data)
+                    if mode == "tobj":
+                        print("Timed object, not implemented...")
+        finally:
+            close_definition_file(output_resource_dir, zonename)
 
 
 def read_ipl(file, game="VC"):
