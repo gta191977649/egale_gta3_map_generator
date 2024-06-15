@@ -11,8 +11,8 @@ MAP_NAME = "Bayview"
 AUTHOR = "NURUPO"
 DESCRIPTION = "Bayview CONVERTED BY NURUPO"
 # Path to your gta.dat file
-dat_file_path = 'F:\\lotrs'
-output_resource_dir = 'F:\\lotrs\\mta'
+dat_file_path = 'F:\\bayview\\sa'
+output_resource_dir = 'F:\\bayview\\sa\\mta'
 
 zones = []
 file_lists = {
