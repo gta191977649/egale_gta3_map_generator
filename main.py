@@ -6,14 +6,14 @@ from quaternion import *
 from model.sa_model import *
 from ide_flags import *
 USE_SA_PROP = True
-GAME = "SA"
 MAP_NAME = "Bayview"
 AUTHOR = "NURUPO"
-DESCRIPTION = "Bayview CONVERTED BY NURUPO"
+DESCRIPTION = "VCS CONVERTED BY NURUPO"
 # Path to your gta.dat file
-dat_file_path = 'F:\\bayview\\sa'
-output_resource_dir = 'F:\\bayview\\sa\\mta'
-
+dat_file_path = r'F:\\vcs_map'
+output_resource_dir = r'F:\vcs_map\\mta'
+USE_GLOBAL_TXD = True # if set true, only 1 texture will be use for entire map
+GLOBAL_TXD_NAME = "map"
 zones = []
 file_lists = {
     "defs":[],
@@ -33,6 +33,16 @@ def add_exsit_img(t,file):
 def add_file_lists(t,file):
     if file not in file_lists[t]:
         file_lists[t].append(file)
+
+def copy_global_txd():
+    path_txd = os.path.join(dat_file_path, "img", f"{GLOBAL_TXD_NAME}.txd")
+    if not os.path.exists(path_txd):
+        return print("map.txd is not found!!!")
+
+    txd_dir = os.path.join(output_resource_dir).lower()
+    shutil.copy2(path_txd, txd_dir)
+    print("map.txd is copied to {}".format(txd_dir))
+
 def copy_model(zonename,modelName, txdName):
     #print(f"Processing Copy Model Zone: {zonename} ...")
 
@@ -56,9 +66,9 @@ def copy_model(zonename,modelName, txdName):
     # copy the files to zone directory
     if dff_exist and txd_exist and col_exist:
         # Directories for dff, txd, and col in the output resource directory
-        dff_dir = os.path.join(output_resource_dir,"zones",zonename, "dff")
-        txd_dir = os.path.join(output_resource_dir,"zones",zonename, "txd")
-        col_dir = os.path.join(output_resource_dir,"zones",zonename, "col")
+        dff_dir = os.path.join(output_resource_dir,"zones",zonename, "dff").lower()
+        txd_dir = os.path.join(output_resource_dir,"zones",zonename, "txd").lower()
+        col_dir = os.path.join(output_resource_dir,"zones",zonename, "col").lower()
 
         # Create directories if they don't exist
         os.makedirs(dff_dir, exist_ok=True)
@@ -71,8 +81,46 @@ def copy_model(zonename,modelName, txdName):
         shutil.copy2(path_col, col_dir)
         print(f"Files copied for {modelName}.dff,{txdName}.txd, {modelName}.col, zone: {zonename}")
         # append to file list cache
+        add_file_lists("imgs","zones/{}/dff/{}.dff".format(zonename,modelName.lower()))
+        add_file_lists("imgs","zones/{}/txd/{}.txd".format(zonename,txdName.lower()))
+        add_file_lists("imgs","zones/{}/col/{}.col".format(zonename,modelName.lower()))
+
+        add_exsit_img("dffs", modelName.lower())
+        return True
+
+    return False
+# Copy model with global texture mode
+def copy_model_GloalTxd(zonename,modelName):
+    #print(f"Processing Copy Model Zone: {zonename} ...")
+
+    path_dff = os.path.join(dat_file_path, "img", f"{modelName}.dff")
+    path_col = os.path.join(dat_file_path, "img", f"{modelName}.col")
+
+    dff_exist = os.path.exists(path_dff)
+    col_exist = os.path.exists(path_col)
+    if not dff_exist:
+        print(f"DFF file for {modelName}.dff does not exist.")
+
+    if not col_exist:
+        print(f"COL file for {modelName}.col does not exist.")
+
+
+    # copy the files to zone directory
+    if dff_exist and col_exist:
+        # Directories for dff, txd, and col in the output resource directory
+        dff_dir = os.path.join(output_resource_dir,"zones",zonename, "dff")
+        col_dir = os.path.join(output_resource_dir,"zones",zonename, "col")
+
+        # Create directories if they don't exist
+        os.makedirs(dff_dir, exist_ok=True)
+        os.makedirs(col_dir, exist_ok=True)
+
+        # Copy the files
+        shutil.copy2(path_dff, dff_dir)
+        shutil.copy2(path_col, col_dir)
+        print(f"Files copied for {modelName}.dff,{modelName}.col, zone: {zonename}")
+        # append to file list cache
         add_file_lists("imgs","zones/{}/dff/{}.dff".format(zonename,modelName))
-        add_file_lists("imgs","zones/{}/txd/{}.txd".format(zonename,txdName))
         add_file_lists("imgs","zones/{}/col/{}.col".format(zonename,modelName))
 
         add_exsit_img("dffs", modelName.lower())
@@ -118,10 +166,10 @@ def create_def(output_resource_dir, model_data):
 
     # Write to the definition file
     with open(def_file_path, 'a', newline='\n') as def_file:
-        if USE_SA_PROP and getSAModelID(model_data["modelName"]):
-            def_line = f'\t<definition id="{model_data["modelName"]}" zone="{zonename}" default=\"true\"'
+        if USE_SA_PROP and getSAModelID(model_data["modelName"].lower()):
+            def_line = f'\t<definition id="{model_data["modelName"].lower()}" zone="{zonename}" default=\"true\"'
         else:
-            def_line = f'\t<definition id="{model_data["modelName"]}" zone="{zonename}" dff="{model_data["modelName"]}" col="{model_data["modelName"]}" txd="{model_data["txdName"]}"'
+            def_line = f'\t<definition id="{model_data["modelName"].lower()}" zone="{zonename}" dff="{model_data["modelName"]}" col="{model_data["modelName"]}" txd="{model_data["txdName"]}"'
 
         if timeIn:
             def_line += f' timeIn="{timeIn}"'
@@ -134,7 +182,7 @@ def create_def(output_resource_dir, model_data):
         else:
             def_line += f' alphaTransparency="false"'
 
-        def_line += f' lod="{model_data["lod"]}" lodID="{model_data["lodID"]}" lodDistance="{model_data["drawDistance"]}" flags="{model_data["flags"]}" doubleSided="true" breakable="{breakable}"></definition>\n'
+        def_line += f' lod="{model_data["lod"]}" lodID="{model_data["lodID"].lower()}" lodDistance="{model_data["drawDistance"]}" flags="{model_data["flags"]}" doubleSided="true" breakable="{breakable}"></definition>\n'
 
         # Check if the file is newly created or not, to add <zoneDefinitions> tag
         if os.path.getsize(def_file_path) == len(def_line):
@@ -182,10 +230,10 @@ def create_map(output_resource_dir, map_data):
 
     # Append each object to the map file
     with open(map_file_path, 'a', newline='\n') as map_file:
-        if USE_SA_PROP and getSAModelID(map_data["model"]):
-            object_line = f'\t<object id="{map_data["model"]}" model="{getSAModelID(map_data["model"])}" posX="{map_data["posX"]}" posY="{map_data["posY"]}" posZ="{map_data["posZ"]}" rotX="{rotX}" rotY="{rotY}" rotZ="{rotZ}" interior="{map_data.get("interior", "0")}" dimension="{map_data.get("dimension", "-1")}"></object>\n'
+        if USE_SA_PROP and getSAModelID(map_data["model"].lower()):
+            object_line = f'\t<object id="{map_data["model"].lower()}" model="{getSAModelID(map_data["model"].lower())}" posX="{map_data["posX"]}" posY="{map_data["posY"]}" posZ="{map_data["posZ"]}" rotX="{rotX}" rotY="{rotY}" rotZ="{rotZ}" interior="{map_data.get("interior", "0")}" dimension="{map_data.get("dimension", "-1")}"></object>\n'
         else:
-            object_line = f'\t<object id="{map_data["model"]}" model="8585" posX="{map_data["posX"]}" posY="{map_data["posY"]}" posZ="{map_data["posZ"]}" rotX="{rotX}" rotY="{rotY}" rotZ="{rotZ}" interior="{map_data.get("interior", "0")}" dimension="{map_data.get("dimension", "-1")}"></object>\n'
+            object_line = f'\t<object id="{map_data["model"].lower()}" model="8585" posX="{map_data["posX"]}" posY="{map_data["posY"]}" posZ="{map_data["posZ"]}" rotX="{rotX}" rotY="{rotY}" rotZ="{rotZ}" interior="{map_data.get("interior", "0")}" dimension="{map_data.get("dimension", "-1")}"></object>\n'
         map_file.write(object_line)
 
 def initialize_map_file(output_resource_dir, zonename):
@@ -230,7 +278,7 @@ def read_ide_objects(file):
                 OBJS.append(model_data)
     return OBJS
 def findLODInIDE(modelName,ide_data):
-    if modelName.startswith("LOD"): return False # skip self
+    if modelName.upper().startswith("LOD"): return False # skip self
     if len(modelName) < 3: return False
     modelName = "LOD" + modelName[3:]
 
@@ -239,7 +287,7 @@ def findLODInIDE(modelName,ide_data):
             return modelName
     return False
 
-def read_ide(file, game="VC"):
+def read_ide(file, game):
     with open(file, 'r', newline='\n') as f:
         zonename, _ = os.path.splitext(os.path.basename(f.name))
         initialize_definition_file(output_resource_dir, zonename)
@@ -277,7 +325,7 @@ def read_ide(file, game="VC"):
                                     'meshCount': components[3].strip(),
                                     'drawDistance': components[-2].strip(),
                                     'flags': components[-1].strip(),
-                                    'lod': 'true' if components[1].strip().startswith("LOD") else 'nil',
+                                    'lod': 'true' if components[1].strip().upper().startswith("LOD") else 'nil',
                                     'lodID': components[1].strip(),
                                 }
                                 # only create the defs that contains exist model file
@@ -298,16 +346,52 @@ def read_ide(file, game="VC"):
                                     'lodID': has_lod if has_lod else 'false',
                                 }
 
-                                # only create the defs that contains exist model file
-                                if copy_model(zonename, model_data['modelName'], model_data['txdName']):
-                                    create_def(output_resource_dir, model_data)
+                                # Check if map is use global txd
+                                if USE_SA_PROP and getSAModelID(components[1].strip().lower()):
+                                    print(
+                                        f"[IDE]: {components[1].strip().lower()} is copy is skipeed because it is a sa dynamic prop")
+                                    continue
+
+                                if USE_GLOBAL_TXD:
+                                    if copy_model_GloalTxd(zonename, model_data['modelName']):
+                                        create_def(output_resource_dir, model_data)
+                                else:
+                                    if copy_model(zonename, model_data['modelName'], model_data['txdName']):
+                                        create_def(output_resource_dir, model_data)
+                        if game in ["VCS"]:
+                            if len(components) == 6:  # Types 1, 2, 3
+                                has_lod = findLODInIDE(components[1].strip(), objs)
+                                model_data = {
+                                    'zonename': zonename,
+                                    'id': components[0].strip().lower(),
+                                    'modelName': components[1].strip(),
+                                    'txdName': components[2].strip(),
+                                    'meshCount': components[3].strip(),
+                                    'drawDistance': components[4].strip(),
+                                    'flags': components[5].strip(),
+                                    'lod': 'true' if has_lod else 'false',
+                                    'lodID': has_lod.lower() if has_lod else 'false',
+                                }
+
+                                # Check if map is use global txd
+                                if USE_SA_PROP and getSAModelID(components[1].strip().lower()):
+                                    print(f"[IDE]: {components[1].strip().lower()} is copy is skipeed because it is a sa dynamic prop")
+                                    continue
+
+                                if USE_GLOBAL_TXD:
+                                    if copy_model_GloalTxd(zonename, model_data['modelName']):
+                                        create_def(output_resource_dir, model_data)
+                                else:
+                                    if copy_model(zonename, model_data['modelName'], model_data['txdName']):
+                                        create_def(output_resource_dir, model_data)
+
                     if mode == "tobj":
-                        if game in ["SA"]:
+                        if game in ["SA","VCS"]:
                             if len(components) == 7:  # Types 1, 2, 3
                                 has_lod = findLODInIDE(components[1].strip(), objs)
                                 model_data = {
                                     'zonename': zonename,
-                                    'id': components[0].strip(),
+                                    'id': components[0].strip().lower(),
                                     'modelName': components[1].strip(),
                                     'txdName': components[2].strip(),
                                     'meshCount': 'nil',
@@ -316,7 +400,7 @@ def read_ide(file, game="VC"):
                                     'drawDistance': components[3].strip(),
                                     'flags': components[4].strip(),
                                     'lod': 'true',
-                                    'lodID': components[1].strip(),
+                                    'lodID': components[1].strip().lower(),
                                 }
 
                                 # only create the defs that contains exist model file
@@ -361,11 +445,11 @@ def read_ipl(file, game="VC"):
                         'rotW': components[11].strip() if len(components) > 11 else '1',
                         'dimension': '-1'
                     }
-                elif game == "VC":
+                elif game in ["VC","VCS"]:
                     # Vice City format
                     map_data = {
                         'zonename': zonename,
-                        'id': components[0].strip(),
+                        'id': components[0].strip().lower(),
                         'model': components[1].strip(),
                         'interior': components[2].strip(),
                         'posX': components[3].strip(),
@@ -374,10 +458,10 @@ def read_ipl(file, game="VC"):
                         'rotX': components[9].strip(),
                         'rotY': components[10].strip(),
                         'rotZ': components[11].strip(),
-                        'rotW': components[12].strip() if len(components) > 9 else '1',
+                        'rotW': components[12].strip(),
                         'dimension': '-1'
                     }
-                elif game == "SA":
+                elif game in ["SA"]:
                     # San Andreas format
                     map_data = {
                         'zonename': zonename,
@@ -394,15 +478,14 @@ def read_ipl(file, game="VC"):
                         #'lod': components[10].strip() if len(components) > 9 else 'nil',
                         'dimension': '-1'
                     }
-
                 if USE_SA_PROP and getSAModelID(map_data["model"].lower()):
-                    print(f"{map_data['model']} is skipped because it is a sa dynamic prop")
+                    print(f"[IPL]: {map_data['model']} is skipped because it is a sa dynamic prop")
                     create_map(output_resource_dir, map_data)
-                if map_data["model"].lower() in exits_img["dffs"]:
+                elif map_data["model"].lower() in exits_img["dffs"]:
                     create_map(output_resource_dir, map_data)
         close_map_file(output_resource_dir, zonename)
 
-def read_ide_ipl_files(files, directory):
+def read_ide_ipl_files(files, directory,game):
     for file in files:
         # Split the file name and get the extension
         file_name, file_extension = os.path.splitext(file)
@@ -414,10 +497,10 @@ def read_ide_ipl_files(files, directory):
         # Check if the file is an IDE or IPL file
         if file_extension == '.ide':
             file_type = "IDE"
-            read_ide(path, "SA")
+            read_ide(path, game)
         elif file_extension == '.ipl':
             file_type = "IPL"
-            read_ipl(path, "SA")
+            read_ipl(path, game)
         else:
             print(f"Unknown file type for {file}")
             continue
@@ -432,15 +515,18 @@ def generate_zonefile():
 
     file_lists["files"].append(f"eagleZones.txt")
 
-def generate_map():
+
+def generate_map(GAME = "SA"):
 
     # Read gta.dat file
     ide_files, ipl_files = read_gta_dat(dat_file_path)
 
     # Read and display the contents of .ide and .ipl files
-    read_ide_ipl_files(ide_files,dat_file_path)
-    read_ide_ipl_files(ipl_files,dat_file_path)
+    read_ide_ipl_files(ide_files,dat_file_path,GAME)
+    read_ide_ipl_files(ipl_files,dat_file_path,GAME)
     generate_zonefile()
+    if USE_GLOBAL_TXD:
+        copy_global_txd()
 
     # You might want to add additional code to handle DFF, TXD, and COL files in the img folder
 def generate_meta_xml():
@@ -460,6 +546,8 @@ def generate_meta_xml():
     # finally eagleZones.txt
     for file in file_lists["files"]:
         output += f"\t<file src=\"{file}\" type=\"client\" />\n"
+    if USE_GLOBAL_TXD:
+        output += f"\t<file src=\"{GLOBAL_TXD_NAME}.txd\" type=\"client\" />\n"
     # close tag
     output += "</meta>"
     # write file
@@ -473,5 +561,5 @@ if __name__ == '__main__':
     # for obj in obj_dat:
     #     objects_dat.append(obj["modelName"].lower())
 
-    generate_map()
+    generate_map("VCS")
     generate_meta_xml()

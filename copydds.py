@@ -2,10 +2,9 @@ import os
 import shutil
 
 # Paths to the directories
-tga_dir = 'F:\\bayview\\l4ra\\beconhill.fbm'  # Update this to the path where your *.tga files are stored
+tga_dir = 'F:\\bayview\\l4ra\\beaconhill_east.fbm'  # Update this to the path where your *.tga files are stored
 dds_dir = 'F:\\bayview\\main\\img\\textures'  # Update this to the path where your *.dds files are stored
 output_dir = 'F:\\bayview\\sa\\txd'  # Update this to your desired output directory
-
 # Ensure the output directory exists
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
