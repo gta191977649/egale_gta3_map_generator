@@ -10,8 +10,8 @@ MAP_NAME = "Bayview"
 AUTHOR = "NURUPO"
 DESCRIPTION = "VCS CONVERTED BY NURUPO"
 # Path to your gta.dat file
-dat_file_path = r'F:\\vcs_map'
-output_resource_dir = r'F:\vcs_map\\mta'
+dat_file_path = r'F:\\vcs_map\\'
+output_resource_dir = r'F:\\vcs_map\\mta'
 USE_GLOBAL_TXD = True # if set true, only 1 texture will be use for entire map
 GLOBAL_TXD_NAME = "map"
 zones = []
@@ -386,7 +386,7 @@ def read_ide(file, game):
                                         create_def(output_resource_dir, model_data)
 
                     if mode == "tobj":
-                        if game in ["SA","VCS"]:
+                        if game in ["SA"]:
                             if len(components) == 7:  # Types 1, 2, 3
                                 has_lod = findLODInIDE(components[1].strip(), objs)
                                 model_data = {
@@ -399,13 +399,43 @@ def read_ide(file, game):
                                     'timeOut': components[6].strip(),
                                     'drawDistance': components[3].strip(),
                                     'flags': components[4].strip(),
-                                    'lod': 'true',
-                                    'lodID': components[1].strip().lower(),
+                                    'lod': 'false',
+                                    #'lodID': components[1].strip().lower(),
                                 }
 
                                 # only create the defs that contains exist model file
-                                if copy_model(zonename, model_data['modelName'], model_data['txdName']):
-                                    create_def(output_resource_dir, model_data)
+                                if USE_GLOBAL_TXD:
+                                    if copy_model_GloalTxd(zonename, model_data['modelName']):
+                                        create_def(output_resource_dir, model_data)
+                                else:
+                                    if copy_model(zonename, model_data['modelName'], model_data['txdName']):
+                                        create_def(output_resource_dir, model_data)
+                        if game in ["VCS"]:
+                            if len(components) == 8:  # Types 1, 2, 3
+                                has_lod = findLODInIDE(components[1].strip(), objs)
+                                model_data = {
+                                    'zonename': zonename,
+                                    'id': components[0].strip().lower(),
+                                    'modelName': components[1].strip(),
+                                    'txdName': components[2].strip(),
+                                    'meshCount': 'nil',
+                                    'timeIn': components[6].strip(),
+                                    'timeOut': components[7].strip(),
+                                    'drawDistance': components[4].strip(),
+                                    'flags': components[5].strip(),
+                                    #'flags': 8,
+                                    'lod': 'false',
+                                    #'lodID': components[1].strip().lower(),
+                                    'lodID': 'false',
+                                }
+                                # only create the defs that contains exist model file
+
+                                if USE_GLOBAL_TXD:
+                                    if copy_model_GloalTxd(zonename, model_data['modelName']):
+                                        create_def(output_resource_dir, model_data)
+                                else:
+                                    if copy_model(zonename, model_data['modelName'], model_data['txdName']):
+                                        create_def(output_resource_dir, model_data)
         finally:
             close_definition_file(output_resource_dir, zonename)
 
