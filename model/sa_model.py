@@ -3,7 +3,7 @@
 SA_MODELS = {}
 
 # Reading all
-f = open(r'E:\dev\egale_gta3_map_generator\sa_props\sa_ids.txt', 'r')
+f = open(r'F:\dev\egale_gta3_map_generator\sa_props\sa_ids.txt', 'r')
 lines = f.readlines()
 
 for line in lines:

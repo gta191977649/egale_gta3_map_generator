@@ -10,8 +10,8 @@ MAP_NAME = "Bayview"
 AUTHOR = "NURUPO"
 DESCRIPTION = "VCS CONVERTED BY NURUPO"
 # Path to your gta.dat file
-dat_file_path = r'F:\\vcs_map\\'
-output_resource_dir = r'F:\\vcs_map\\mta'
+dat_file_path = r'E:\\vcs_map\\'
+output_resource_dir = r'E:\\vcs_map\\mta'
 USE_GLOBAL_TXD = True # if set true, only 1 texture will be use for entire map
 GLOBAL_TXD_NAME = "map"
 zones = []
@@ -25,6 +25,7 @@ file_lists = {
 exits_img = {
     "dffs":[]
 }
+OBJECT_LIST = []
 
 objects_dat = []
 def add_exsit_img(t,file):
@@ -182,7 +183,7 @@ def create_def(output_resource_dir, model_data):
         else:
             def_line += f' alphaTransparency="false"'
 
-        def_line += f' lod="{model_data["lod"]}" lodID="{model_data["lodID"].lower()}" lodDistance="{model_data["drawDistance"]}" flags="{model_data["flags"]}" doubleSided="true" breakable="{breakable}"></definition>\n'
+        def_line += f' lod="{model_data["lod"]}" lodID="{model_data["lodID"].lower()}" lodDistance="{model_data["drawDistance"]}" flags="{model_data["flags"]}" doubleSided="true" breakable="{breakable}" type="{model_data["type"]}"></definition>\n'
 
         # Check if the file is newly created or not, to add <zoneDefinitions> tag
         if os.path.getsize(def_file_path) == len(def_line):
@@ -287,6 +288,13 @@ def findLODInIDE(modelName,ide_data):
             return modelName
     return False
 
+def isModelInObjectList(modelName):
+    for obj in OBJECT_LIST:
+        if obj['modelName'] == modelName:
+            return True
+    return False
+
+
 def read_ide(file, game):
     with open(file, 'r', newline='\n') as f:
         zonename, _ = os.path.splitext(os.path.basename(f.name))
@@ -371,6 +379,7 @@ def read_ide(file, game):
                                     'flags': components[5].strip(),
                                     'lod': 'true' if has_lod else 'false',
                                     'lodID': has_lod.lower() if has_lod else 'false',
+                                    'type': 'object' if isModelInObjectList(components[1].strip().lower()) else 'building',
                                 }
 
                                 # Check if map is use global txd
@@ -427,6 +436,8 @@ def read_ide(file, game):
                                     'lod': 'false',
                                     #'lodID': components[1].strip().lower(),
                                     'lodID': 'false',
+                                    'type': 'object' if isModelInObjectList(
+                                        components[1].strip().lower()) else 'building',
                                 }
                                 # only create the defs that contains exist model file
 
@@ -585,11 +596,15 @@ def generate_meta_xml():
     with open(eagle_zones_path, 'w', newline='\n') as file:
          file.write(output)
 
+def loadObjectDat(path):
+    obj_dat = getObjectDat(path)
+    for obj in obj_dat:
+        objects_dat.append(obj["modelName"].lower())
+    return obj_dat
+
+
 if __name__ == '__main__':
     # handle with object.dat for dynamic objects
-    # obj_dat = getObjectDat("/Users/nurupo/Desktop/dev/vcs_map/object.dat")
-    # for obj in obj_dat:
-    #     objects_dat.append(obj["modelName"].lower())
-
+    OBJECT_LIST = loadObjectDat("{}/object.dat".format(dat_file_path))
     generate_map("VCS")
     generate_meta_xml()
