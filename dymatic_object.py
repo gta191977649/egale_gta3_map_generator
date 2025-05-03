@@ -19,7 +19,7 @@ def parse_line(line,game = "VC"):
             if len(processed_parts) < 11: return False
 
             return {
-                "modelName": processed_parts[0],
+                "modelName": processed_parts[0].strip().lower(),
                 "mass": float(processed_parts[1]),
                 "turnMass": float(processed_parts[2]),
                 "airResistance": float(processed_parts[3]),
@@ -38,7 +38,7 @@ def parse_line(line,game = "VC"):
             if len(processed_parts) < 13: return None
 
             return {
-                "modelName": processed_parts[0],
+                "modelName": processed_parts[0].strip().lower(),
                 "mass": float(processed_parts[1]),
                 "turnMass": float(processed_parts[2]),
                 "airResistance": float(processed_parts[3]),
@@ -69,6 +69,7 @@ def parse_line(line,game = "VC"):
         print(f"Error parsing line: {line}")
         print(e)
         return None
+
 def getObjectDat(file_path):
     object_data = []
     with open(file_path, 'r') as file:
