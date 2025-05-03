@@ -10,7 +10,7 @@ class Placement:
 
 # Building Object Type
 class Building(Placement):
-    def __init__(self, id, x=0, y=0, z=0, rx=0, ry=0, rz=0, lodParent=None):
+    def __init__(self, id, x=0, y=0, z=0, rx=0, ry=0, rz=0, lodParent="self"):
         super().__init__(id, x, y, z, rx, ry, rz)
         self.lodParent = lodParent
 
