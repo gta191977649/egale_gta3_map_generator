@@ -95,20 +95,13 @@ def create_def(output_resource_dir, model_data):
     def_file_path = os.path.join(output_resource_dir,"zones" ,zonename, f"{zonename}.def")
 
     # Check if 'timeIn' and 'timeOut' flags are present in the flags
-    timeIn = None
-    timeOut = None
+    timedObj = model_data["timeIn"] and model_data["timeOut"]
 
+    # if timedObj:
+    #     print(model_data)
     # Check if breakable
     breakable = "false"
     if model_data["modelName"].lower() in objects_dat: breakable = "true"
-
-    if "timeOn" in model_data['flags'] or "timeOff" in model_data['flags']:
-        time_flags = model_data['flags'].split()  # Assuming flags are space-separated
-        for flag in time_flags:
-            if flag.startswith("timeOn"):
-                timeIn = flag.split('=')[1]
-            elif flag.startswith("timeOff"):
-                timeOut = flag.split('=')[1]
 
     # Create the zonename directory if it doesn't exist
     os.makedirs(os.path.dirname(def_file_path), exist_ok=True)
@@ -120,11 +113,11 @@ def create_def(output_resource_dir, model_data):
         else:
             def_line = f'\t<definition id="{model_data["modelName"]}" zone="{zonename}" dff="{model_data["modelName"]}" col="{model_data["modelName"]}" txd="{model_data["txdName"]}"'
 
-        if timeIn:
-            def_line += f' timeIn="{timeIn}"'
-        if timeOut:
-            def_line += f' timeOut="{timeOut}"'
-        def_line += f' lod="{model_data["lod"]}" lodID= "{model_data["lodID"]}" lodDistance="{model_data["drawDistance"]}" flags="{model_data["flags"]}" doubleSided="true" breakable="{breakable}"></definition>\n'
+        if timedObj:
+            def_line += f' timeIn="{model_data["timeIn"]}"'
+            def_line += f' timeOut="{model_data["timeOut"]}"'
+            #model_data["drawDistance"] = 2000
+        def_line += f' lod="{model_data["lod"]}" lodID="{model_data["lodID"]}" lodDistance="{model_data["drawDistance"]}" flags="{model_data["flags"]}" doubleSided="true" breakable="{breakable}"></definition>\n'
 
         # Check if the file is newly created or not, to add <zoneDefinitions> tag
         if os.path.getsize(def_file_path) == len(def_line):
@@ -229,11 +222,12 @@ def findLODInIDE(modelName,ide_data):
             return modelName
     return False
 
-def read_ide(file, game="VC"):
+def read_ide(file, game="SA"):
     with open(file, 'r', newline='\n') as f:
         zonename, _ = os.path.splitext(os.path.basename(f.name))
         initialize_definition_file(output_resource_dir, zonename)
         process_lines = False
+        is_timed = False
 
         objs = read_ide_objects(file)
 
@@ -245,11 +239,16 @@ def read_ide(file, game="VC"):
             line = line.strip()
             if line == 'objs':
                 process_lines = True
+                is_timed = False  # Ensure is_timed is reset for standard object sections
                 continue
-            elif line == 'end':
+            if line == 'tobj':
+                process_lines = True
+                is_timed = True  # Set for timed object sections
+                continue
+            if line == 'end':
                 process_lines = False
-                close_definition_file(output_resource_dir, zonename)
-                break
+                is_timed = False  # Reset when the section ends
+                continue
 
             if process_lines and line and not line.startswith('#'):
                 components = line.split(',')
@@ -271,8 +270,8 @@ def read_ide(file, game="VC"):
                         # only create the defs that contains exist model file
                         if copy_model(zonename, model_data['modelName'], model_data['txdName']):
                             create_def(output_resource_dir, model_data)
-                if game in ["SA"]:
-                    if len(components) == 5:  # Types 1, 2, 3
+                if game in ["SA","VCS"]:
+                    if len(components) in [5,7]:  # Types 1, 2, 3
                         has_lod = findLODInIDE(components[1].strip(),objs)
                         model_data = {
                             'zonename': zonename,
@@ -284,11 +283,13 @@ def read_ide(file, game="VC"):
                             'flags': components[-1].strip(),
                             'lod': 'true' if has_lod else 'false',
                             'lodID': has_lod if has_lod else 'false',
+                            'timeIn':components[5].strip() if is_timed else False,
+                            'timeOut':components[6].strip() if is_timed else False,
                         }
-
                         # only create the defs that contains exist model file
                         if copy_model(zonename, model_data['modelName'], model_data['txdName']):
                             create_def(output_resource_dir, model_data)
+        close_definition_file(output_resource_dir, zonename)
 
 
 
@@ -297,6 +298,7 @@ def read_ipl(file, game="VC"):
         zonename, _ = os.path.splitext(os.path.basename(f.name))
         initialize_map_file(output_resource_dir, zonename)
         process_lines = False
+
         if zonename not in zones:
             zones.append(zonename)
 
