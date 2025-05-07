@@ -239,8 +239,10 @@ def load_map(path):
 		writeDefs(zone, definations)
 		writeMaps(zone, placements)
 
-	# Finally write zone index file
+	# Write zone index file
 	writeZones(map_data["zone"])
+
+	# Todo. Finally Write meta.xml
 
 # Example usage:
 if __name__ == '__main__':
