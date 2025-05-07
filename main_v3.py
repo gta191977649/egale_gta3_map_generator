@@ -1,5 +1,5 @@
+# This is for eagleloader v3
 import os
-
 from model.defination import *
 from model.placement import *
 from helper import normalize_path
@@ -9,7 +9,6 @@ map_data = {
 	"defination_files": {},
 	"zone": {}, # stores for all related zones
 }
-
 
 def read_gta_dat(dat_file_path):
 	ide_files = []
@@ -119,6 +118,11 @@ def load_ides(path, game="SA"):
 				if copy_model(img_folder,modelName=model,txdName=txd,colName=model):
 					ide = Defination(zone=zone, id=id, dff=model, col=model, txd=txd, lodDistance=draw_dist, flag=flag)
 					defination_files.append(ide)
+		if section == "tobjs":
+			print("Not implemented tobj")
+		if section == "2dfx":
+			print("Not implemented 2dfx")
+
 	return defination_files
 
 
@@ -157,6 +161,37 @@ def load_ipls(path, game="SA"):
 						print(f"{id} not found in defination!")
 	return placements_files
 
+def createDefs(zone, definitions):
+	path_def = os.path.join(output_dir, "zones", zone, f"{zone}.definition")
+	os.makedirs(os.path.dirname(path_def), exist_ok=True)
+
+	output_string_buffer = "<zoneDefinitions>\n"
+	for d in definitions:
+		output_string_buffer += f"\t{d}\n"
+	output_string_buffer += "</zoneDefinitions>"
+
+	try:
+		with open(path_def, "w", encoding="utf-8") as f:
+			f.write(output_string_buffer)
+		print(f"{os.path.basename(path_def)} is created")
+	except Exception as e:
+		print(f"Failed to write {os.path.basename(path_def)}: {e}")
+
+def createMaps(zone, plcements):
+	path_def = os.path.join(output_dir, "zones", zone, f"{zone}.map")
+	os.makedirs(os.path.dirname(path_def), exist_ok=True)
+
+	output_string_buffer = "<map>\n"
+	for p in plcements:
+		output_string_buffer += f"\t{p}\n"
+	output_string_buffer += "</map>"
+
+	try:
+		with open(path_def, "w", encoding="utf-8") as f:
+			f.write(output_string_buffer)
+		print(f"{os.path.basename(path_def)} is created")
+	except Exception as e:
+		print(f"Failed to write {os.path.basename(path_def)}: {e}")
 
 def load_map(path):
 	ide_paths, ipl_paths = read_gta_dat(path)
@@ -181,20 +216,14 @@ def load_map(path):
 		map_data["zone"][zone]["placement"] = placement_files
 
 
-	# process zone
+	# Process zone & write .defs & .maps
 	for zone in map_data["zone"]:
-		print("ZONE:",zone)
+		print("Process Zone:",zone)
 		definations = map_data["zone"][zone]["defination"]
 		placements = map_data["zone"][zone]["placement"]
 
-		# for d in definations:
-		# 	print(d)
-		#
-
-		for p in placements:
-			print(p)
-
-
+		createDefs(zone, definations)
+		createMaps(zone, placements)
 
 
 # Example usage:
