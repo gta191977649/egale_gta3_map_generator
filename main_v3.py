@@ -123,7 +123,7 @@ def load_ides(path, game="SA"):
 
 
 def load_ipls(path, game="SA"):
-	placements = []
+	placements_files = []
 	items = process_section(path)
 	# Get IDE Name from path
 	zone = os.path.splitext(os.path.basename(path))[0]
@@ -143,20 +143,19 @@ def load_ipls(path, game="SA"):
 					ry = float(obj[7])
 					rz = float(obj[8])
 					rw = float(obj[9])
-					lod = int(obj[10])
-
+					lod = int(obj[10]) # Todo. For SA, need to search for the co-responding LodModel Name
 
 					if id in map_data["defination_files"]:
 						defination = map_data["defination_files"][id]
-						object = None
+						ipl = None
 						if defination.lodDistance > 299:  # if lod is not set but drawdist is > 299, set itself
-							object = Building(id=id, x=x, y=y, z=z, rx=rx, ry=ry, rz=rz)
+							ipl = Building(id=id, x=x, y=y, z=z, rx=rx, ry=ry, rz=rz ,rw=rw)
 						else:
-							object = Object(id=id, x=x, y=y, z=z, rx=rx, ry=ry, rz=rz)
-						placements.append(object)
+							ipl = Object(id=id, x=x, y=y, z=z, rx=rx, ry=ry, rz=rz ,rw=rw)
+						placements_files.append(ipl)
 					else:
 						print(f"{id} not found in defination!")
-	return placements
+	return placements_files
 
 
 def load_map(path):
@@ -179,7 +178,7 @@ def load_map(path):
 	for ipl_file in ipl_paths:
 		zone = os.path.splitext(os.path.basename(ipl_file))[0].lower()
 		placement_files = load_ipls(ipl_file)
-		map_data["zone"][zone]["placement"] = placement_files,
+		map_data["zone"][zone]["placement"] = placement_files
 
 
 	# process zone
@@ -188,8 +187,13 @@ def load_map(path):
 		definations = map_data["zone"][zone]["defination"]
 		placements = map_data["zone"][zone]["placement"]
 
-		for d in definations:
-			print(d)
+		# for d in definations:
+		# 	print(d)
+		#
+
+		for p in placements:
+			print(p)
+
 
 
 
