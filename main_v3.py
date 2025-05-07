@@ -161,7 +161,7 @@ def load_ipls(path, game="SA"):
 						print(f"{id} not found in defination!")
 	return placements_files
 
-def createDefs(zone, definitions):
+def writeDefs(zone, definitions):
 	path_def = os.path.join(output_dir, "zones", zone, f"{zone}.definition")
 	os.makedirs(os.path.dirname(path_def), exist_ok=True)
 
@@ -177,7 +177,7 @@ def createDefs(zone, definitions):
 	except Exception as e:
 		print(f"Failed to write {os.path.basename(path_def)}: {e}")
 
-def createMaps(zone, plcements):
+def writeMaps(zone, plcements):
 	path_def = os.path.join(output_dir, "zones", zone, f"{zone}.map")
 	os.makedirs(os.path.dirname(path_def), exist_ok=True)
 
@@ -192,6 +192,20 @@ def createMaps(zone, plcements):
 		print(f"{os.path.basename(path_def)} is created")
 	except Exception as e:
 		print(f"Failed to write {os.path.basename(path_def)}: {e}")
+
+def writeZones(zones):
+	# this creates eagleZones.txt
+	path_txt = os.path.join(output_dir, "eagleZones.txt")
+	output_string_buffer = ""
+	for zone in zones:
+		output_string_buffer += f"{zone}\n"
+
+	try:
+		with open(path_txt, "w", encoding="utf-8") as f:
+			f.write(output_string_buffer)
+		print(f"{os.path.basename(path_txt)} is created")
+	except Exception as e:
+		print(f"Failed to write {os.path.basename(path_txt)}: {e}")
 
 def load_map(path):
 	ide_paths, ipl_paths = read_gta_dat(path)
@@ -222,9 +236,11 @@ def load_map(path):
 		definations = map_data["zone"][zone]["defination"]
 		placements = map_data["zone"][zone]["placement"]
 
-		createDefs(zone, definations)
-		createMaps(zone, placements)
+		writeDefs(zone, definations)
+		writeMaps(zone, placements)
 
+	# Finally write zone index file
+	writeZones(map_data["zone"])
 
 # Example usage:
 if __name__ == '__main__':
